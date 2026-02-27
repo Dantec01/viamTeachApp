@@ -1,0 +1,121 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap");
+
+@layer base {
+  :root {
+    /* Android 16 / Material 3 - Deep Blue / Violet Seed */
+    --background: 230 40% 98%;
+    --foreground: 230 20% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 230 20% 15%;
+    --card-selected: 230 80% 96%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 230 20% 10%;
+
+    --primary: 230 85% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 230 20% 90%;
+    --secondary-foreground: 230 30% 20%;
+
+    --muted: 230 15% 94%;
+    --muted-foreground: 230 15% 45%;
+
+    --accent: 230 100% 92%;
+    --accent-foreground: 230 80% 40%;
+
+    --destructive: 0 85% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 70% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --recording: 0 80% 55%;
+
+    --border: 230 20% 90%;
+    --input: 230 20% 90%;
+    --ring: 230 85% 60%;
+
+    /* Android 16 corners: 24px - 32px */
+    --radius: 1.5rem;
+
+    --surface-variant: 230 25% 94%;
+    --on-surface-variant: 230 15% 30%;
+  }
+
+  .dark {
+    --background: 230 25% 8%;
+    --foreground: 230 15% 95%;
+
+    --card: 230 25% 12%;
+    --card-foreground: 230 15% 90%;
+    --card-selected: 230 60% 20%;
+
+    --popover: 230 25% 10%;
+    --popover-foreground: 230 15% 95%;
+
+    --primary: 230 80% 70%;
+    --primary-foreground: 230 40% 10%;
+
+    --secondary: 230 20% 18%;
+    --secondary-foreground: 230 15% 85%;
+
+    --muted: 230 20% 15%;
+    --muted-foreground: 230 15% 60%;
+
+    --accent: 230 60% 25%;
+    --accent-foreground: 230 80% 90%;
+
+    --border: 230 20% 20%;
+    --input: 230 20% 20%;
+    --ring: 230 80% 70%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border select-none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: "Outfit", sans-serif;
+  }
+
+  /* Smooth scrolling for mobile */
+  html {
+    scroll-behavior: smooth;
+    overscroll-behavior-y: contain;
+  }
+}
+
+@layer utilities {
+  .m3-card {
+    @apply bg-card rounded-[24px] shadow-sm border-none transition-all duration-300 active:scale-[0.98];
+  }
+
+  .m3-surface {
+    background-color: hsl(var(--surface-variant));
+    color: hsl(var(--on-surface-variant));
+  }
+
+  .recording-pulse {
+    @apply relative overflow-hidden;
+  }
+
+  .recording-pulse::after {
+    content: "";
+    @apply absolute inset-0 rounded-full animate-ping opacity-25 bg-destructive;
+    animation-duration: 2s;
+  }
+
+  .glass-android {
+    @apply bg-background/80 backdrop-blur-xl border-t border-white/10;
+  }
+}
