@@ -2,7 +2,6 @@ import { useState } from "react";
 import EduHeader from "@/components/EduHeader";
 import StudentGrid from "@/components/StudentGrid";
 import CaptureArea from "@/components/CaptureArea";
-import CourseSelector from "@/components/CourseSelector";
 import BottomTabBar, { type TabId } from "@/components/BottomTabBar";
 import ReportsView from "@/components/ReportsView";
 import StudentsView from "@/components/StudentsView";
@@ -13,10 +12,11 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState<TabId>("clase");
   const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null);
   const [selectedCourse, setSelectedCourse] = useState("Inglés - Principiantes");
+  const [isRecording, setIsRecording] = useState(false);
 
   return (
     <div className="flex flex-col min-h-[100dvh] max-w-md mx-auto bg-background selection:bg-primary/20">
-      <EduHeader />
+      <EduHeader selectedCourse={selectedCourse} onSelectCourse={setSelectedCourse} />
 
       <motion.div 
         layout
@@ -33,16 +33,20 @@ const Index = () => {
               exit={{ opacity: 0, y: -20 }}
               className="flex-1 flex flex-col"
             >
-              <CourseSelector selectedCourse={selectedCourse} onSelect={setSelectedCourse} />
               <main className="flex-1 overflow-y-auto pb-64 no-scrollbar">
                 <StudentGrid
                   selectedId={selectedStudentId}
+                  isRecording={isRecording}
                   onSelect={(id) =>
                     setSelectedStudentId((prev) => (prev === id ? null : id))
                   }
                 />
               </main>
-              <CaptureArea selectedStudentId={selectedStudentId} />
+              <CaptureArea 
+                selectedStudentId={selectedStudentId} 
+                isRecording={isRecording}
+                setIsRecording={setIsRecording}
+              />
             </motion.div>
           </AnimatePresence>
         )}
@@ -72,4 +76,5 @@ const Index = () => {
 };
 
 export default Index;
+
 
