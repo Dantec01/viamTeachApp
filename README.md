@@ -1,74 +1,78 @@
-# Guia App
+# Guia App 🍎
 
-**Guia App** es una App educativa diseñada específicamente para asistir a profesores que utilizan el **Método Montessori**. La aplicación facilita el seguimiento holístico del desarrollo del estudiante basado en las dimensiones: *Ser, Saber, Hacer y Decidir*.
+**Guia App** es una plataforma educativa de vanguardia diseñada para docentes que aplican el **Método Montessori**. Permite un seguimiento holístico y digital del desarrollo del estudiante en las dimensiones fundamentales: *Ser, Saber, Hacer y Decidir*.
 
-## Características Principales
+## ✨ Características Principales
 
-- **Gestión de Alumnos**: Visualización rápida de estudiantes de cada curso. Soporte planificado para escaneo de listas de asistencia mediante OCR.
-- **Observaciones In-Situ (CaptureArea)**: Grabación de voz en vivo durante las clases para capturar observaciones de forma natural sin interrumpir la enseñanza.
-- **Análisis con IA (Gemini)**: Las observaciones de voz son transcritas (Speech-to-Text) y analizadas mediante la Inteligencia Artificial de Google (Gemini 1.5 Flash) para extraer un análisis de sentimiento (Positivo, Neutral, Negativo) y generar etiquetas automáticas sobre las áreas del desarrollo Montessori que impactan.
-- **Informes Holísticos Avanzados**: Visualización del progreso mediante gráficos y reportes estructurados para el seguimiento de cada alumno.
+- **🎯 Gestión de Alumnos**: Administración de estudiantes y cursos con una interfaz intuitiva y rápida.
+- **🎙️ Observaciones In-Situ (CaptureArea)**: Grabación de voz en tiempo real para capturar momentos pedagógicos sin interrumpir el flujo de la clase.
+- **🤖 Inteligencia Artificial (Gemini 1.5 Flash)**: 
+    - **Speech-to-Text**: Transcripción automática de observaciones de voz.
+    - **Análisis de Sentimiento**: Clasificación automática (Positivo, Neutral, Negativo) de la interacción docente-alumno.
+    - **Etiquetado Inteligente**: Generación de tags basados en el desarrollo Montessori (ej. "Autonomía", "Social", "Lógica").
+    - **OCR Vision**: Extracción de datos desde fotos de registros físicos de asistencia.
+- **📊 Dashboards Analíticos**: Visualización de progreso mediante gráficos dinámicos para una evaluación cualitativa precisa.
 
-## Tecnologías Utilizadas
+## 🛠️ Stack Tecnológico
 
-Esta aplicación sigue una arquitectura moderna dividida en Frontend y Backend:
-
-### Frontend (PWA / Web Mobile-First)
-- **Framework**: React 18 con TypeScript y Vite.
-- **UI & Estilos**: Tailwind CSS, componentes de Shadcn UI (basado en Radix UI), y Framer Motion para transiciones fluidas e interactivas.
-- **Gráficos**: Recharts.
+### Frontend (Mobile-First / PWA)
+- **Framework**: `React 18` + `TypeScript` + `Vite`.
+- **UI/UX**: `Tailwind CSS` + `Shadcn UI`.
+- **Animaciones**: `Framer Motion` para una experiencia fluida y premium.
+- **Gestión de Estado**: `TanStack React Query` para sincronización eficiente de datos.
+- **Gráficos**: `Recharts`.
+- **Captura de Voz**: `react-speech-recognition` para procesamiento en cliente.
 
 ### Backend (Node.js API)
-- **Framework**: Node.js con Express y TypeScript.
-- **Base de Datos**: SQLite con **Prisma ORM** para una gestión ágil de los datos.
-- **Autenticación**: JSON Web Tokens (JWT) y encriptación de contraseñas con bcrypt.
-- **Inteligencia Artificial (IA)**: Google Generative AI (`@google/generative-ai`) para el modelo Gemini 1.5 Flash, encargado de la transcripción de audios, análisis de sentimientos, descubrimiento de etiquetas y OCR en imágenes.
+- **Entorno**: `Node.js` + `Express` + `TypeScript`.
+- **Base de Datos**: `SQLite` gestionado mediante `Prisma ORM`.
+- **Seguridad**: `JWT` (JSON Web Tokens) + `bcrypt` para encriptado de credenciales.
+- **IA SDK**: `@google/generative-ai` (Integración directa con Google AI Studio).
+- **Manejo de Media**: `Multer` para la gestión de archivos de audio subidos.
 
-## Estructura del Proyecto
+## 📂 Estructura del Proyecto
 
 ```text
 viamTeachApp/
-├── backend/            # Código fuente del Backend (Node.js + Express + Prisma)
-│   ├── prisma/         # Esquema de la base de datos (schema.prisma)
-│   └── src/            # Controladores, Rutas, Servicios de IA
-├── src/                # Código fuente del Frontend (React + Vite)
-│   ├── components/     # Componentes visuales y de UI
-│   ├── pages/          # Vistas principales (Ej. Index.tsx)
-│   └── ...
+├── backend/            # Microservicio API (Node.js + Express)
+│   ├── prisma/         # Esquema de BD y migraciones
+│   ├── src/            # Controladores, Rutas y Servicios de IA
+│   └── uploads/        # Almacenamiento temporal de audios
+├── src/                # Frontend (React + Vite)
+│   ├── components/     # Componentes de UI (UI atomics, CaptureArea, etc.)
+│   ├── pages/          # Vistas principales (Index.tsx, Profile)
+│   ├── hooks/          # Lógica personalizada y queries
+│   └── lib/            # Configuraciones (utils, API base)
 └── README.md
 ```
 
-## Ejecución en Desarrollo
+## 🚀 Guía de Instalación y Ejecución
 
-El proyecto requiere ejecutar tanto el servidor Frontend como el Backend simultáneamente.
+El proyecto requiere la ejecución simultánea de ambos servicios.
 
-### 1. Backend (Node.js)
+### 1. Configuración del Backend
 
-Asegúrate de configurar tus variables de entorno creando un archivo `.env` dentro de la carpeta `backend` con la siguiente información:
+Dirígete a la carpeta `backend` y crea un archivo `.env`:
 ```env
-DATABASE_URL="file:./dev.db"
-JWT_SECRET="tu_secreto_super_seguro"
 PORT=3001
-GEMINI_API_KEY="tu_clave_de_api_de_google_gemini"
+DATABASE_URL="file:./dev.db"
+JWT_SECRET="genera_una_clave_aleatoria_y_segura"
+GEMINI_API_KEY="TU_API_KEY_DE_GOOGLE_AI_STUDIO"
 ```
 
-Luego, en una terminal:
+Instalación y arranque:
 ```sh
 cd backend
 npm install
-# Sincronizar la base de datos Prisma (Opcional si ya existe dev.db)
-npx prisma db push
-# Iniciar servidor en modo desarrollo
+npx prisma db push  # Sincroniza el esquema con la base de datos local
 npm run dev
 ```
 
-### 2. Frontend (React)
+### 2. Configuración del Frontend
 
-En otra terminal, corre la interfaz de usuario:
-
+En la raíz del proyecto:
 ```sh
-# Instalar dependencias en la raíz
 npm install
-# Correr servidor de desarrollo
 npm run dev
 ```
+La aplicación estará disponible en `http://localhost:5173`.
