@@ -22,3 +22,15 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Python
+ai-backend/venv/
+ai-backend/__pycache__/
+ai-backend/*.py[cod]
+ai-backend/*$py.class
+
+# Database
+ai-backend/*.db
+
+# Uploads
+ai-backend/uploads/
