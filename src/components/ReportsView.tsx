@@ -1,29 +1,80 @@
-import { useState } from "react";
-import { Search, Sparkles, BookHeart } from "lucide-react";
-import { students } from "./StudentGrid";
+import { useState, useEffect } from "react";
+import { Search, Sparkles, BookHeart, History, Loader2 } from "lucide-react";
+import { type Student } from "./StudentGrid";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Radar,
   RadarChart,
   PolarGrid,
   PolarAngleAxis,
-  PolarRadiusAxis,
   ResponsiveContainer,
 } from "recharts";
 
-const radarData = [
-  { axis: "Ser", value: 68 },
-  { axis: "Saber", value: 88 },
-  { axis: "Hacer", value: 85 },
-  { axis: "Decidir", value: 62 },
-];
+interface ReportsViewProps {
+  students: Student[];
+  isPrivacyMode?: boolean;
+  token: string | null;
+  apiBase: string;
+}
 
-const ReportsView = () => {
+interface Observation {
+    id: number;
+    content: string;
+    sentiment: string;
+    tags: string;
+}
+
+const ReportsView = ({ students, isPrivacyMode, token, apiBase }: ReportsViewProps) => {
   const [query, setQuery] = useState("");
-  const [selectedStudent, setSelectedStudent] = useState<typeof students[0] | null>(null);
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [observations, setObservations] = useState<Observation[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (selectedStudent && token) {
+      const fetchObs = async () => {
+        setLoading(true);
+        try {
+          const res = await fetch(`${apiBase}/observations?studentId=${selectedStudent.id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const data = await res.json();
+          setObservations(data);
+        } catch (err) {
+          console.error(err);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchObs();
+    }
+  }, [selectedStudent, token]);
 
   const filtered = query
     ? students.filter((s) => s.name.toLowerCase().includes(query.toLowerCase()))
     : students;
+    
+  const getDisplayName = (name: string, lastname?: string) => {
+      if (isPrivacyMode) {
+          return `${name.charAt(0)}. ${lastname?.charAt(0) || ""}.`;
+      }
+      return name;
+  };
+
+  // Calculate radar data from real observations
+  const sentimentCounts = {
+      POSITIVE: observations.filter(o => o.sentiment === 'POSITIVE').length,
+      NEUTRAL: observations.filter(o => o.sentiment === 'NEUTRAL').length,
+      NEGATIVE: observations.filter(o => o.sentiment === 'NEGATIVE').length,
+  };
+
+  const total = observations.length || 1;
+  const radarData = [
+    { axis: "Social", value: observations.filter(o => o.tags.toLowerCase().includes('social')).length * 20 + 40 },
+    { axis: "Académico", value: observations.filter(o => o.tags.toLowerCase().includes('acad')).length * 20 + 40 },
+    { axis: "Conducta", value: (sentimentCounts.POSITIVE - sentimentCounts.NEGATIVE) * 10 + 60 },
+    { axis: "Participación", value: observations.filter(o => o.tags.toLowerCase().includes('part')).length * 20 + 40 },
+  ];
 
   return (
     <div className="px-4 py-4 pb-20">
@@ -54,79 +105,111 @@ const ReportsView = () => {
                 className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-foreground/70"
                 style={{ backgroundColor: `hsl(${s.avatarColor})` }}
               >
-                {s.name.charAt(0)}
+                {getDisplayName(s.name, s.lastname).charAt(0)}
               </div>
-              <span className="text-xs font-semibold">{s.name}</span>
+              <span className="text-xs font-semibold">{getDisplayName(s.name, s.lastname)}</span>
             </button>
           ))}
         </div>
       )}
 
       {selectedStudent && (
-        <div className="animate-fade-in space-y-4">
-          <h2 className="text-lg font-extrabold text-foreground">
-            Reporte de {selectedStudent.name}
-          </h2>
-
-          {/* Radar Chart with recharts */}
-          <div className="bg-card rounded-2xl p-4 border border-border">
-            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
-              Perfil Holístico
-            </p>
-            <ResponsiveContainer width="100%" height={240}>
-              <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="75%">
-                <PolarGrid stroke="hsl(30 15% 90%)" />
-                <PolarAngleAxis
-                  dataKey="axis"
-                  tick={{ fontSize: 11, fontWeight: 700, fill: "hsl(30 8% 50%)" }}
-                />
-                <PolarRadiusAxis angle={90} domain={[0, 100]} tick={false} axisLine={false} />
-                <Radar
-                  dataKey="value"
-                  stroke="hsl(14 76% 55%)"
-                  fill="hsl(14 76% 55%)"
-                  fillOpacity={0.25}
-                  strokeWidth={2}
-                />
-              </RadarChart>
-            </ResponsiveContainer>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-4"
+        >
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-extrabold text-foreground tracking-tight">
+              Reporte de {getDisplayName(selectedStudent.name, selectedStudent.lastname)}
+            </h2>
+            <button onClick={() => setSelectedStudent(null)} className="text-[10px] uppercase font-bold text-primary">
+                Cambiar Alumno
+            </button>
           </div>
 
-          {/* AI Summary */}
-          <div className="bg-card rounded-2xl p-4 border border-border">
-            <div className="flex items-center gap-2 mb-2">
-              <Sparkles size={16} className="text-primary" />
-              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Resumen Cualitativo IA
-              </p>
-            </div>
-            <p className="text-sm text-foreground/80 leading-relaxed">
-              {selectedStudent.name} muestra un desarrollo destacado en la dimensión práctica (Hacer), con habilidades sólidas
-              para aplicar conocimientos en situaciones reales. Se recomienda fortalecer la participación comunitaria
-              y la toma de decisiones colaborativa para un crecimiento más equilibrado.
-            </p>
-          </div>
+          {loading ? (
+              <div className="flex justify-center py-20">
+                  <Loader2 className="animate-spin text-primary" size={32} />
+              </div>
+          ) : observations.length === 0 ? (
+              <div className="bg-card rounded-[32px] p-8 text-center border-none">
+                  <p className="text-sm text-muted-foreground">No hay observaciones grabadas aún para este alumno.</p>
+              </div>
+          ) : (
+            <>
+              {/* Radar Chart */}
+              <div className="bg-card rounded-[32px] p-6 shadow-sm border-none">
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-4">
+                  Análisis Holístico Real
+                </p>
+                <ResponsiveContainer width="100%" height={240}>
+                  <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="80%">
+                    <PolarGrid stroke="hsl(var(--border))" />
+                    <PolarAngleAxis
+                      dataKey="axis"
+                      tick={{ fontSize: 11, fontWeight: 700, fill: "hsl(var(--muted-foreground))" }}
+                    />
+                    <Radar
+                       dataKey="value"
+                       stroke="hsl(var(--primary))"
+                       fill="hsl(var(--primary))"
+                       fillOpacity={0.15}
+                       strokeWidth={3}
+                    />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </div>
 
-          {/* Montessori Guide */}
-          <div className="bg-accent/50 rounded-2xl p-4 border border-accent">
-            <div className="flex items-center gap-2 mb-2">
-              <BookHeart size={16} className="text-accent-foreground" />
-              <p className="text-xs font-bold uppercase tracking-wider text-accent-foreground">
-                Guía Montessori Recomendada
-              </p>
-            </div>
-            <ul className="space-y-2 text-sm text-foreground/80">
-              <li className="flex gap-2">
-                <span className="text-primary font-bold">•</span>
-                Implementar actividades de "gracia y cortesía" para reforzar valores de convivencia y respeto mutuo.
-              </li>
-              <li className="flex gap-2">
-                <span className="text-primary font-bold">•</span>
-                Incorporar proyectos grupales con roles rotativos para estimular la toma de decisiones y el liderazgo compartido.
-              </li>
-            </ul>
-          </div>
-        </div>
+              {/* AI Real Insights */}
+              <div className="grid gap-3">
+                 <div className="bg-card rounded-[32px] p-5 border-none shadow-sm relative overflow-hidden group">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                          <Sparkles size={16} />
+                      </div>
+                      <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                        Resumen de GuIA
+                      </p>
+                    </div>
+                    <p className="text-[15px] text-foreground/90 leading-relaxed font-medium">
+                      Con {observations.length} observaciones registradas, GuIA detectó un sentimiento predominantemente **{sentimentCounts.POSITIVE > sentimentCounts.NEGATIVE ? 'Positivo' : 'Neutral'}**. 
+                      Las áreas más recurrentes son **{radarData.sort((a,b) => b.value - a.value)[0].axis}**.
+                    </p>
+                 </div>
+
+                 <div className="bg-surface-variant/40 rounded-[32px] p-5 border-none">
+                    <div className="flex items-center gap-2 mb-3">
+                        <div className="w-8 h-8 rounded-xl bg-accent/20 flex items-center justify-center text-accent-foreground">
+                            <BookHeart size={16} />
+                        </div>
+                        <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                            Histórico Reciente
+                        </p>
+                    </div>
+                    <div className="space-y-2">
+                        {observations.slice(0, 2).map((obs) => (
+                            <div key={obs.id} className="text-xs bg-white/50 p-2 rounded-lg">
+                                <span className="font-bold text-primary block">{obs.sentiment}</span>
+                                <p className="italic">"{obs.content?.substring(0, 60)}..."</p>
+                            </div>
+                        ))}
+                    </div>
+                 </div>
+              </div>
+            </>
+          )}
+
+          {/* MAGIC LINK BUTTON */}
+          <motion.button
+            whileTap={{ scale: 0.96 }}
+            className="w-full py-4 bg-primary text-white rounded-[24px] font-bold text-sm shadow-xl shadow-primary/25 flex items-center justify-center gap-2 group overflow-hidden relative"
+          >
+             <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+            <Search size={16} className="text-white/80" />
+            Generar Informe Real para Padres
+          </motion.button>
+        </motion.div>
       )}
     </div>
   );

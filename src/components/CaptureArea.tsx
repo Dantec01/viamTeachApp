@@ -1,23 +1,37 @@
-import { Mic, Send, Square, AudioLines } from "lucide-react";
-import { useState } from "react";
+import { Mic, Send, Square, Sparkles } from "lucide-react";
+import { useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { students } from "./StudentGrid";
+import { type Student } from "./StudentGrid";
 import { motion, AnimatePresence } from "framer-motion";
+import SpeechRecognition, { useSpeechRecognition } from "react-speech-recognition";
 
 interface CaptureAreaProps {
-  selectedStudentId: number | null;
+  selectedStudent: Student | null;
   isRecording: boolean;
   setIsRecording: (recording: boolean) => void;
+  isPrivacyMode?: boolean;
+  token: string | null;
+  apiBase: string;
 }
 
-const CaptureArea = ({ selectedStudentId, isRecording, setIsRecording }: CaptureAreaProps) => {
+const CaptureArea = ({ selectedStudent, isRecording, setIsRecording, isPrivacyMode, token, apiBase }: CaptureAreaProps) => {
   const [note, setNote] = useState("");
+  const [transcript, setTranscript] = useState("");
   const { toast } = useToast();
 
-  const selectedStudent = students.find((s) => s.id === selectedStudentId);
+  const studentDisplayName = isPrivacyMode 
+    ? `${selectedStudent?.name.charAt(0)}. ${selectedStudent?.lastname?.charAt(0) || ""}.` 
+    : selectedStudent?.name;
 
-  const handleMicPress = () => {
-    if (!selectedStudent) {
+  const {
+    transcript: speechObjTranscript,
+    listening,
+    resetTranscript,
+    browserSupportsSpeechRecognition
+  } = useSpeechRecognition();
+
+  const handleMicPress = async () => {
+    if (!selectedStudent || !token) {
       toast({
         description: "Selecciona un alumno primero",
         variant: "destructive",
@@ -25,19 +39,64 @@ const CaptureArea = ({ selectedStudentId, isRecording, setIsRecording }: Capture
       return;
     }
 
-    if (isRecording) {
-      setIsRecording(false);
+    if (!browserSupportsSpeechRecognition) {
       toast({
-        description: `Observación guardada — ${selectedStudent.name}`,
-        variant: "default",
+        title: "No Soportado",
+        description: "Tu navegador no soporta el dictado por voz offline/nativo.",
+        variant: "destructive"
       });
+      return;
+    }
+
+    if (listening) {
+        SpeechRecognition.stopListening();
+        setIsRecording(false);
+        
+        if (!speechObjTranscript.trim()) {
+            toast({ title: "Sin audio", description: "No se escuchó nada." });
+            return;
+        }
+
+        toast({ title: "GuIA Procesando...", description: "Guardando nota de voz transcrita..." });
+        
+        try {
+            const res = await fetch(`${apiBase}/observations`, {
+                method: "POST",
+                headers: { 
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    studentId: selectedStudent.id,
+                    content: `Voz: ${speechObjTranscript}`
+                })
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                toast({ 
+                  title: "¡Nota Registrada!", 
+                  description: `Registrado como '${data.sentiment}' con etiquetas: ${data.tags}`,
+                  className: "bg-success text-success-foreground border-success"
+                });
+                resetTranscript();
+            } else {
+                toast({ title: "Error", description: "No se pudo procesar la nota.", variant: "destructive" });
+            }
+        } catch (err) {
+            console.error(err);
+            toast({ title: "Error de red", description: "Fallo de conexión", variant: "destructive" });
+        }
+
     } else {
-      setIsRecording(true);
+        resetTranscript();
+        SpeechRecognition.startListening({ continuous: true, language: 'es-ES' });
+        setIsRecording(true);
     }
   };
 
-  const handleSendNote = () => {
-    if (!selectedStudent) {
+  const handleSendNote = async () => {
+    if (!selectedStudent || !token) {
       toast({
         description: "Selecciona un alumno primero",
         variant: "destructive",
@@ -47,9 +106,34 @@ const CaptureArea = ({ selectedStudentId, isRecording, setIsRecording }: Capture
     if (!note.trim()) return;
 
     toast({
-      description: `Nota guardada — ${selectedStudent.name}`,
+      title: "Enviando a GuIA...",
+      description: "Analizando contenido...",
     });
-    setNote("");
+
+    try {
+        const res = await fetch(`${apiBase}/observations`, {
+            method: "POST",
+            headers: { 
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                studentId: selectedStudent.id,
+                content: note
+            })
+        });
+
+        if (res.ok) {
+            const data = await res.json();
+            toast({
+              title: "Nota guardada",
+              description: `Registrado como '${data.sentiment}' con etiquetas: ${data.tags}`,
+            });
+            setNote("");
+        }
+    } catch (err) {
+        toast({ title: "Error", description: "No se pudo conectar con el servidor.", variant: "destructive" });
+    }
   };
 
   return (
@@ -68,7 +152,7 @@ const CaptureArea = ({ selectedStudentId, isRecording, setIsRecording }: Capture
               className="px-4 py-1.5 rounded-full bg-primary text-white text-[10px] font-bold mb-4 shadow-xl shadow-primary/20 flex items-center gap-2"
             >
               <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-              REGISTRANDO PARA {selectedStudent.name.toUpperCase()}
+              REGISTRANDO PARA {studentDisplayName?.toUpperCase()}
             </motion.div>
           )}
         </AnimatePresence>
@@ -95,7 +179,9 @@ const CaptureArea = ({ selectedStudentId, isRecording, setIsRecording }: Capture
                         />
                       ))}
                     </div>
-                    <span className="text-[13px] font-bold text-destructive uppercase tracking-widest animate-pulse ml-2">En vivo...</span>
+                    <span className="text-[13px] font-bold text-destructive uppercase tracking-widest animate-pulse ml-2 overflow-hidden text-ellipsis whitespace-nowrap">
+                      {transcript || "Escuchando..."}
+                    </span>
                   </motion.div>
                 ) : (
                   <motion.div 

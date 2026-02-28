@@ -1,36 +1,36 @@
-import { Wifi, CloudOff, Search, Settings, ChevronDown } from "lucide-react";
+import { Wifi, CloudOff, Search, Settings, ChevronDown, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface EduHeaderProps {
   selectedCourse: string;
   onSelectCourse: (course: string) => void;
+  isPrivacyMode: boolean;
+  onTogglePrivacy: () => void;
+  courses: string[];
 }
 
-const courses = [
-  "Inglés - Principiantes",
-  "Inglés - 1ro A",
-  "Computación - Jueves",
-];
-
-const EduHeader = ({ selectedCourse, onSelectCourse }: EduHeaderProps) => {
+const EduHeader = ({ selectedCourse, onSelectCourse, isPrivacyMode, onTogglePrivacy, courses }: EduHeaderProps) => {
   const [isOnline] = useState(true);
   const [showCourses, setShowCourses] = useState(false);
 
   return (
     <header className="sticky top-0 z-30 flex flex-col pt-2 bg-background/80 backdrop-blur-xl border-b border-border/50">
       <div className="flex items-center justify-between h-14 px-4">
-        <button className="p-2 transition-colors rounded-full active:bg-primary/10">
-          <Settings size={20} className="text-foreground/70" />
+        <button 
+          onClick={onTogglePrivacy}
+          className={`p-2 transition-all duration-300 rounded-full ${isPrivacyMode ? 'bg-primary text-white shadow-lg' : 'active:bg-primary/10 text-foreground/70'}`}
+        >
+          {isPrivacyMode ? <EyeOff size={20} /> : <Eye size={20} />}
         </button>
         
         <div className="flex flex-col items-center">
           <motion.h1 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="text-[15px] font-bold tracking-tight text-foreground"
+            className="text-[17px] font-extrabold tracking-tight text-foreground"
           >
-            EduTrack
+            GuIA
           </motion.h1>
           <button 
             onClick={() => setShowCourses(!showCourses)}
