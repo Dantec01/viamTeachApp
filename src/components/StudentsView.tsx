@@ -145,9 +145,6 @@ const StudentsView = ({ token, courseId, isPrivacyMode, apiBase }: StudentsViewP
             <Sparkles size={12} />
             Preguntar a GuIA
           </button>
-          <span className="text-[10px] font-bold bg-primary/10 text-primary px-3 py-1 rounded-full uppercase tracking-widest">
-              En Vivo
-          </span>
         </div>
       </div>
 

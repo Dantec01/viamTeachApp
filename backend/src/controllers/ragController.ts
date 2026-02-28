@@ -13,10 +13,17 @@ export const askGuIA = async (req: AuthRequest, res: Response) => {
     }
 
     // 1. Retrieve all observations for the given course
+    const studentsInCourse = await prisma.student.findMany({
+      where: { courseId: parseInt(courseId) },
+      select: { id: true }
+    });
+    
+    const studentIds = studentsInCourse.map(s => s.id);
+
     const observations = await prisma.observation.findMany({
       where: {
         teacherId,
-        student: { courseId: parseInt(courseId) }
+        studentId: { in: studentIds }
       },
       include: {
         student: true
