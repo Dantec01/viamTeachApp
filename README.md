@@ -76,3 +76,13 @@ npm install
 npm run dev
 ```
 La aplicación estará disponible en `http://localhost:5173`.
+
+## 📄 Licencia y Derechos de Autor (Copyright)
+
+Este proyecto, su arquitectura y todo su código fuente son propiedad exclusiva del equipo **VIAM** (© 2026). 
+
+**Todos los derechos reservados.** Este repositorio NO es de código abierto (Open Source) para uso comercial. Queda estrictamente prohibida la copia, distribución, modificación, sublicencia o monetización de esta aplicación, su idea o su código sin el consentimiento explícito y por escrito de los autores.
+
+Para más detalles legales, por favor consulta el archivo LICENSE en la raíz de este repositorio.
+
+🤝 **¿Interesado en el proyecto?** Si representas a una institución educativa, eres un inversor, o deseas proponer una alianza comercial oficial, nos encantaría hablar contigo. Contáctanos en: **danmeroja@gmail.com**.
